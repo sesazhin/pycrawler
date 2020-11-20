@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime
 import logging
 
 from genie.conf import Genie
@@ -11,6 +12,7 @@ from unicon.core import errors
 
 from pathlib import Path
 
+
 def create_non_existing_dir(dir_path):
     if not path.exists(dir_path):
         try:
@@ -21,9 +23,10 @@ def create_non_existing_dir(dir_path):
             exit(1)
 
 
-def write_commands_to_file(abs_filename, command_output):
+def write_commands_to_file(abs_filename, command_output, time_now_readable):
     try:
-        with open(abs_filename, "w") as file_output:
+        with open(abs_filename, "a") as file_output:
+            file_output.write(f'*****{time_now_readable}*****\n')
             file_output.write(command_output)
 
     except IOError as e:
@@ -52,6 +55,8 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
                       f'Check connectivity and try again.')
             continue
 
+        time_now_readable = datetime.datetime.fromtimestamp(current_time).isoformat()
+
         if commands_to_gather.get(device_os):
             for command in commands_to_gather[device_os]:
                 filename_command = command.replace(' ', '_')
@@ -62,7 +67,7 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
 
                 command_output = device.execute(command, log_stdout=True)
 
-                write_commands_to_file(abs_filename, command_output)
+                write_commands_to_file(abs_filename, command_output, time_now_readable)
         else:
             log.error(f'No commands for operating system: {device_os} '
                       f'of device: {device_name} has been defined. '
