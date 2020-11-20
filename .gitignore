@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # YAML since it may contain Customer's data
-.yaml
+*.yaml
 
 # Commands gathered by script:
 gathered_commands/
