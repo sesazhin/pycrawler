@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import datetime
 import logging
+import time
 
 from genie.conf import Genie
 
@@ -26,7 +26,8 @@ def create_non_existing_dir(dir_path):
 def write_commands_to_file(abs_filename, command_output, time_now_readable):
     try:
         with open(abs_filename, "a") as file_output:
-            file_output.write(f'*****{time_now_readable}*****\n')
+            file_output.write(f'\n*****{time_now_readable}*****\n')
+            log.debug(command_output)
             file_output.write(command_output)
 
     except IOError as e:
@@ -55,7 +56,7 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
                       f'Check connectivity and try again.')
             continue
 
-        time_now_readable = datetime.datetime.fromtimestamp(current_time).isoformat()
+        time_now_readable = time.strftime('%d %b %Y %H:%M:%S', time.localtime())
 
         if commands_to_gather.get(device_os):
             for command in commands_to_gather[device_os]:
@@ -66,6 +67,10 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
                 log.info(f'filename: {abs_filename}')
 
                 command_output = device.execute(command, log_stdout=True)
+                
+                # fixing cosmetic bug with '>' on the last line of output
+                if device_os == 'fxos' and command_output[-1:] == '>':
+                    command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
 
                 write_commands_to_file(abs_filename, command_output, time_now_readable)
         else:
@@ -101,3 +106,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
