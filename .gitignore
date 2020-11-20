@@ -133,3 +133,6 @@ dmypy.json
 
 # Commands gathered by script:
 gathered_commands/
+
+# PyCharm:
+/.idea
