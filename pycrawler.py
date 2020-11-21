@@ -36,7 +36,8 @@ def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -
     root_logger = logging.getLogger('main_logger')
     root_logger.propagate = False
     root_logger.setLevel(logging.DEBUG)
-    logFormatter = logging.Formatter("%(asctime)s - %(filename)s - line %(lineno)s - %(funcName)s - %(levelname)s: %(message)s")
+    logFormatter = logging.Formatter("%(asctime)s - %(filename)s - "
+                                     "line %(lineno)s - %(funcName)s - %(levelname)s: %(message)s")
 
     # Initialize logging to console:
     consoleHandler = logging.StreamHandler()
@@ -45,18 +46,19 @@ def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -
     root_logger.addHandler(consoleHandler)
 
     log_dir_name = 'log'
-    par_dir_path = Path(__file__).resolve().parents[1]
+    script_directory = Path(__file__).resolve().parents[0]
 
-    abs_log_path = path.join(par_dir_path, log_dir_name)
+    abs_log_path = path.join(script_directory, log_dir_name)
     create_non_existing_dir(abs_log_path)
 
     LOGFILE = path.join(abs_log_path, 'pycrawler.log')
     LOG_FILE_SIZE = 20
 
     try:
+        # save logging output to file up to 20 Mbytes size,
+        # keep 10 files in logging directory
         file_handler = logging.handlers.RotatingFileHandler(LOGFILE, maxBytes=(1048576 * LOG_FILE_SIZE), backupCount=10,
-                                                            encoding='utf-8')   # save logging output to file up to 20 Mbytes size,
-                                                                                # keep 10 files in logging directory
+                                                            encoding='utf-8')
         file_handler.setLevel(logging_num_file)
         file_handler.setFormatter(logFormatter)
         root_logger.addHandler(file_handler)
@@ -65,6 +67,7 @@ def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -
         root_logger.exception(f'Unable to create log file: {LOGFILE}.\nLogs not saved!')
 
     return root_logger
+
 
 def create_non_existing_dir(dir_path):
     if not path.exists(dir_path):
@@ -94,7 +97,7 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
 
     create_non_existing_dir(abs_dir_path)
 
-    log.info('Starting to collect output of the commands')
+    log.debug('Starting to collect output of the commands')
 
     for device_name, device in testbed.devices.items():
         # get operating system of a device from pyats_testbed.yaml
@@ -110,6 +113,7 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
             continue
 
         time_now_readable = time.strftime('%d %b %Y %H:%M:%S', time.localtime())
+        log.info(f'time_now: {time_now_readable}')
 
         if commands_to_gather.get(device_os):
             for command in commands_to_gather[device_os]:
@@ -121,7 +125,7 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
 
                 command_output = device.execute(command, log_stdout=True)
                 
-                # fixing cosmetic bug with '>' on the last line of output
+                # fixing cosmetic bug with '>' on the last line of FTD's output
                 if device_os == 'fxos' and command_output[-1:] == '>':
                     command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
 
@@ -135,23 +139,15 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
 
 
 def main():
-    
-    logging_level_console = 'INFO'
+    logging_level_console = 'ERROR'
     logging_level_file = 'INFO'
+    script_directory = Path(__file__).resolve().parents[0]
+    testbed_filename = f'{script_directory}/testbed.yaml'
+
     global log
     log = set_main_logging(logging_level_console, logging_level_file)
-    
-    '''
-    format = '%(asctime)s - %(filename)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.INFO, format=format)
-    '''
 
-    # log = logging.getLogger(__name__)
-
-    script_directory = Path(__file__).resolve().parents[0]
-
-    testbed_filename = f'{script_directory}/testbed.yaml'
-    log.info(f'testbed_filename = {testbed_filename}')
+    log.debug(f'testbed_filename = {testbed_filename}')
     testbed = Genie.init(testbed_filename)
 
     commands_to_gather = {
