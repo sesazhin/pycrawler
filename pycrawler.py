@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+import gzip
 import logging
 import logging.handlers
+import pathlib
 import re
+import shutil
 import time
 
 from genie.conf import Genie
@@ -9,17 +12,16 @@ from genie.conf import Genie
 from os import path
 from os import mkdir
 
-# To handle errors with connections to devices
-from unicon.core import errors
-
 from pathlib import Path
 
 from os import listdir
 from os import remove
 from os.path import isfile, join, getsize, basename
-import pathlib
 
-from datetime import datetime
+from typing import List
+
+# To handle errors with connections to devices
+from unicon.core import errors
 
 def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -> logging.getLogger():
     """
@@ -110,8 +112,8 @@ def remove_file(oldest_file) -> None:
                   f'Insufficient privileges. Error: {e}')
 
 
-def get_files_to_gz() -> List:
-    dir_path = Path(__file__).resolve().parents[0]
+def get_files_to_gz(dir_path: str) -> List:
+    # dir_path = Path(__file__).resolve().parents[0]
     onlyfiles = [join(dir_path, f) for f in listdir(dir_path) if isfile(join(dir_path, f))]
     log.debug(f'onlyfiles: {onlyfiles}')
 
@@ -141,8 +143,8 @@ def gz_files(only_big_files: List) -> None:
         remove_file(big_file)
 
 
-def remove_old_gz_files(only_big_files: List) -> None:
-    dir_path = Path(__file__).resolve().parents[0]
+def remove_old_gz_files(only_big_files: List, dir_path: str) -> None:
+    # dir_path = Path(__file__).resolve().parents[0]
     onlyfiles = [join(dir_path, f) for f in listdir(dir_path) if isfile(join(dir_path, f))]
     only_gzip_files = [filepath for filepath in onlyfiles if '.gz' in pathlib.Path(filepath).suffixes]
 
@@ -155,8 +157,8 @@ def remove_old_gz_files(only_big_files: List) -> None:
         # Check number of .gz files is not more than 'num_to_store'. Otherwise remove the oldest file:
         num_to_store = 10
 
-        if len(file_list) > num_to_store:
-            oldest_file = min(file_list)
+        if len(gz_files_for_big_file) > num_to_store:
+            oldest_file = min(gz_files_for_big_file)
             remove_file(oldest_file)
 
 
@@ -204,6 +206,13 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
                 abs_filename = path.join(device_path, filename)
                 log.info(f'filename: {abs_filename}')
 
+                # get all big non-gz files (in plain text)
+                only_big_files = get_files_to_gz(device_path)
+                # gz all big plain text files
+                gz_files(only_big_files)
+                # remove the oldest gz file for each command
+                remove_old_gz_files(only_big_files, device_path)
+
                 command_output = device.execute(command, log_stdout=True)
                 
                 # fixing cosmetic bug with '>' on the last line of FTD's output
@@ -221,7 +230,7 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
 
 def main():
     logging_level_console = 'ERROR'
-    logging_level_file = 'INFO'
+    logging_level_file = 'DEBUG'
     script_directory = Path(__file__).resolve().parents[0]
     testbed_filename = f'{script_directory}/testbed.yaml'
 
@@ -239,13 +248,6 @@ def main():
     dir_name = 'gathered_commands'
 
     collect_device_commands(testbed, commands_to_gather, dir_name)
-
-    # get all big non-gz files (in plain text)
-    only_big_files = get_files_to_gz()
-    # gz all big plain text files
-    gz_files(only_big_files)
-    # remove the oldest gz file for each command
-    remove_old_gz_files(only_big_files)
 
 
 if __name__ == '__main__':
