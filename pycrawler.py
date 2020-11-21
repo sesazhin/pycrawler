@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import logging
 import logging.handlers
+import re
 import time
 
 from genie.conf import Genie
@@ -13,6 +14,12 @@ from unicon.core import errors
 
 from pathlib import Path
 
+from os import listdir
+from os import remove
+from os.path import isfile, join, getsize, basename
+import pathlib
+
+from datetime import datetime
 
 def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -> logging.getLogger():
     """
@@ -69,6 +76,21 @@ def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -
     return root_logger
 
 
+def get_gzip_files(current_filename: str, filename_to_compare: str) -> str:
+    filename = basename(current_filename)
+    log.debug(f'filename: {filename}')
+
+    str_to_match = rf'.*({filename}_\d{{10}}.gz)$'
+    log.debug(f'str_to_match: {str_to_match}')
+
+    r = re.compile(str_to_match)
+    filepath = rf'{filename_to_compare}'
+    if r.search(filepath):
+        return (filepath)
+    else:
+        return ''
+
+
 def create_non_existing_dir(dir_path):
     if not path.exists(dir_path):
         try:
@@ -77,6 +99,65 @@ def create_non_existing_dir(dir_path):
             log.error(f'Unable to create directory: {dir_path}.'
                       f'Insufficient privileges. Error: {e}')
             exit(1)
+
+
+def remove_file(oldest_file) -> None:
+    try:
+        remove(oldest_file)
+        log.info(f'oldest_file has been removed successfully: {oldest_file}')
+    except PermissionError as e:
+        log.error(f'Unable to delete gzip file: {oldest_file}.'
+                  f'Insufficient privileges. Error: {e}')
+
+
+def get_files_to_gz() -> List:
+    dir_path = Path(__file__).resolve().parents[0]
+    onlyfiles = [join(dir_path, f) for f in listdir(dir_path) if isfile(join(dir_path, f))]
+    log.debug(f'onlyfiles: {onlyfiles}')
+
+    only_non_gzip_files = [filepath for filepath in onlyfiles if '.gz' not in pathlib.Path(filepath).suffixes]
+
+    log.debug(f'only_non_gzip_files: {only_non_gzip_files}')
+
+    only_big_files = [filepath for filepath in only_non_gzip_files if getsize(filepath) > 500]
+
+    log.debug(f'big_files: {only_big_files}')
+
+    return only_big_files
+
+
+def gzip_file(f_in_name: str, f_out_name: str) -> None:
+    with open(f_in_name, 'rb') as f_in:
+        with gzip.open(f_out_name, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+
+def gz_files(only_big_files: List) -> None:
+    # gz all plain text files and remove plain these plain text afterwards
+    for big_file in only_big_files:
+        timestamp = int(time.time())
+        log.debug(f'big_file to gz: {big_file}')
+        gzip_file(big_file, f'{big_file}_{timestamp}.gz')
+        remove_file(big_file)
+
+
+def remove_old_gz_files(only_big_files: List) -> None:
+    dir_path = Path(__file__).resolve().parents[0]
+    onlyfiles = [join(dir_path, f) for f in listdir(dir_path) if isfile(join(dir_path, f))]
+    only_gzip_files = [filepath for filepath in onlyfiles if '.gz' in pathlib.Path(filepath).suffixes]
+
+    for big_file in only_big_files:
+        # get list of all .gz files for this big file with commands:
+        gz_files_for_big_file = list(filter(lambda filepath: get_gzip_files(big_file, filepath), only_gzip_files))
+
+        log.debug(f'only .gz files for this command output {big_file}: {gz_files_for_big_file}')
+
+        # Check number of .gz files is not more than 'num_to_store'. Otherwise remove the oldest file:
+        num_to_store = 10
+
+        if len(file_list) > num_to_store:
+            oldest_file = min(file_list)
+            remove_file(oldest_file)
 
 
 def write_commands_to_file(abs_filename, command_output, time_now_readable):
@@ -158,6 +239,13 @@ def main():
     dir_name = 'gathered_commands'
 
     collect_device_commands(testbed, commands_to_gather, dir_name)
+
+    # get all big non-gz files (in plain text)
+    only_big_files = get_files_to_gz()
+    # gz all big plain text files
+    gz_files(only_big_files)
+    # remove the oldest gz file for each command
+    remove_old_gz_files(only_big_files)
 
 
 if __name__ == '__main__':
