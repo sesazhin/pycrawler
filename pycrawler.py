@@ -135,18 +135,18 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
 
 
 def main():
-    global log
-    log = sup.set_main_logging(logging_level_console, logging_level_file)
-
-    '''
-    format = '%(asctime)s - %(filename)s - %(levelname)s - %(message)s'
-    ogging.basicConfig(level=logging.INFO, format=format)
-
+    
     logging_level_console = 'INFO'
     logging_level_file = 'INFO'
-
-    log = logging.getLogger(__name__)
+    global log
+    log = set_main_logging(logging_level_console, logging_level_file)
+    
     '''
+    format = '%(asctime)s - %(filename)s - %(levelname)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format=format)
+    '''
+
+    # log = logging.getLogger(__name__)
 
     script_directory = Path(__file__).resolve().parents[0]
 
