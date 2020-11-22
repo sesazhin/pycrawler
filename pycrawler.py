@@ -166,7 +166,8 @@ def write_commands_to_file(abs_filename, command_output, time_now_readable):
     try:
         with open(abs_filename, "a") as file_output:
             file_output.write(f'\n*****{time_now_readable}*****\n')
-            log.debug(command_output)
+            # log.debug(command_output)a
+            log.debug(f'writing command output to file: {abs_filename}')
             file_output.write(command_output)
 
     except IOError as e:
@@ -218,7 +219,7 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
                 # fixing cosmetic bug with '>' on the last line of FTD's output
                 if device_os == 'fxos' and command_output[-1:] == '>':
                     command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
-
+                time.sleep(5)
                 write_commands_to_file(abs_filename, command_output, time_now_readable)
         else:
             log.error(f'No commands for operating system: {device_os} '
