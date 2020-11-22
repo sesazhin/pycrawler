@@ -78,3 +78,67 @@ The recommended way of storing credentials in **testbed.yaml** is in encrypted f
 ```
 In the example above secret_pass - is an encrypted string with cisco_pass. 
 To generate this string follow the procedure:
+
+1. Activate virtual environment
+```
+source <path_to_venv>/bin/activate
+```
+
+2. Install the cryptography package:
+```
+pip install cryptography
+```
+
+3. Generate a cryptographic key:
+```
+pyats secret keygen
+Newly generated key :
+dSvoKX23jKQADn20INt3W3B5ogUQmh6Pq00czddHtgU=
+```
+
+4. Create configuration file for pyATS: **vim $VIRTUAL_ENV/pyats.conf** and add the following:
+```
+[secrets]
+string.representer = pyats.utils.secret_strings.FernetSecretStringRepresenter
+string.key = dSvoKX23jKQADn20INt3W3B5ogUQmh6Pq00czddHtgU=
+```
+
+5. Ensure the permissions are restricted on your pyATS configuration file to prevent other users from reading it:
+```
+chmod 600 $VIRTUAL_ENV/pyats.conf
+```
+
+6. Encode a password:
+```
+pyats secret encode
+Password: cisco_pass
+Encoded string :
+gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=
+```
+
+7. Do a test decode of the encoded password:
+```
+pyats secret decode gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=
+Decoded string :
+cisco_pass
+```
+
+8. Add your encoded password to a testbed.yaml %ENC{} block. Now your password is secured.\n
+The only way to decode the password from the testbed YAML file is to use the same pyATS configuration file (**$VIRTUAL_ENV/pyats.conf**) used to encode the password:
+```
+  credentials:
+    default:
+      username: "cisco"
+      password: "ENC{gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=}"
+    enable:
+      password: "ENC{gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=}"
+    line:
+      password: "ENC{gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=}"
+```
+
+## More
+Configuration files for pyATS:
+https://pubhub.devnetcloud.com/media/pyats/docs/configuration/index.html#pyats-configuration
+
+Complete procedure to generate pyATS Secret String:
+https://pubhub.devnetcloud.com/media/pyats/docs/utilities/secret_strings.html#secret-strings
