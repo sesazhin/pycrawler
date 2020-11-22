@@ -8,6 +8,11 @@ For required libraries and their versions see **requirements.txt**.
 This tool has been written and tested with Python 3.8 but should work with Python 3.6 and newer versions as well.
 The tool is only supported on Linux since requires pyATS library to work (it might also work on WSL and macOS but hasn't been tested there).
 
+Start from cloning it to your system:
+```
+git clone https://github.com/sesazhin/pycrawler.git
+```
+
 ## 1. To install required apps and Python libraries:
 ```
 sudo apt-get install python3-dev -y
