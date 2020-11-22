@@ -59,8 +59,7 @@ def get_files_to_gz(dir_path: str, file_size_to_gzip: int) -> List:
 
     log.debug(f'only_non_gzip_files: {only_non_gzip_files}')
 
-    # file_size_to_gzip = file_size_to_gzip * 10 ** 6  # converting to Mbytes
-    file_size_to_gzip = 20000
+    file_size_to_gzip = file_size_to_gzip * 10 ** 6  # converting to Mbytes
 
     only_big_files = [filepath for filepath in only_non_gzip_files if getsize(filepath) > file_size_to_gzip]
 
