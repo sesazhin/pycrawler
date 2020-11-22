@@ -163,6 +163,17 @@ The only way to decode the password from the testbed YAML file is to use the sam
       password: "ENC{gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=}"
 ```
 
+## (Optinal) 9. Add tool in crontab
+### Run the following commands to update crontab:
+```
+crontab -e
+* * * * * <path_to_venv>/bin/python3 <path_ro_repository>/pycrawler.py >> /var/log/cron.log 2>&1
+```
+### Check crontab has been successfully updated:
+```
+crontab -l
+```
+
 ## More
 Configuration files for pyATS:
 https://pubhub.devnetcloud.com/media/pyats/docs/configuration/index.html#pyats-configuration
