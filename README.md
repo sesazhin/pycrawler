@@ -22,7 +22,6 @@ pip install --upgrade pip setuptools
 
 ```
 pip install pyats
-pip install tabulate
 pip install genie
 ```
 
@@ -31,11 +30,51 @@ pip install genie
 pip install -r requirements.txt
 ```
 
-## Specify username and password (as Linux env variable) to access your devices
+## Put testbed.yaml file to config directory (see testbed_example.yaml for reference)
+
+## Username and password for connection to devices
+### If you are not going to run the tool via crontab - you can use Linux environment variables to store username and password:
+Run the following commands from Bash:
 ```
 export PYATS_USERNAME=admin
 export PYATS_PASSWORD=cisco.123
 export PYATS_AUTH_PASS=cisco.123
 ```
+These environment variables to be used in the following configuration in config/testbed.yaml:
+```
+  credentials:
+    default:
+      username: "PYATS_USERNAME"
+      password: "PYATS_PASSWORD"
+    enable:
+      password: "%ENV{PYATS_AUTH_PASS}"
+    line:
+      password: "%ENV{PYATS_AUTH_PASS}"
+```
 
-## Put testbed.yaml file to config directory (see testbed_example.yaml for reference)
+### If this tool is going to be run with crontab - it's recommended to store credentials for access devices in testbed.yaml file
+While you could use the following configuration to store the username and password in testbed.yaml, it's not secure because if testbed.yaml is stolen - credentials would become compromised. Below is an example how to store credentials in testbed.yaml (cisco\cisco_pass) - **NOT RECOMMENDED!**:
+```
+  credentials:
+    default:
+      username: "cisco"
+      password: "cisco_pass"
+    enable:
+      password: "cisco_pass"
+    line:
+      password: "cisco_pass"
+```
+
+The recommended way of storing credentials in **testbed.yaml** is in encrypted form:
+```
+  credentials:
+    default:
+      username: "cisco"
+      password: "ENC{secret_pass}"
+    enable:
+      password: "ENC{secret_pass}"
+    line:
+      password: "ENC{secret_pass}"
+```
+In the example above secret_pass - is an encrypted string with cisco_pass. 
+To generate this string follow the procedure:
