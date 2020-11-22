@@ -15,7 +15,7 @@ from pathlib import Path
 
 from os import listdir
 from os import remove
-from os.path import basename, dirname, getsize, isfile, join
+from os.path import basename, dirname, exists, getsize, isfile, join
 
 from typing import List
 from typing import Dict
@@ -59,7 +59,8 @@ def get_files_to_gz(dir_path: str, file_size_to_gzip: int) -> List:
 
     log.debug(f'only_non_gzip_files: {only_non_gzip_files}')
 
-    file_size_to_gzip = file_size_to_gzip * 10 ** 6  # converting to Mbytes
+    # file_size_to_gzip = file_size_to_gzip * 10 ** 6  # converting to Mbytes
+    file_size_to_gzip = 20000
 
     only_big_files = [filepath for filepath in only_non_gzip_files if getsize(filepath) > file_size_to_gzip]
 
@@ -75,13 +76,15 @@ def gzip_file(f_in_name: str, f_out_name: str) -> None:
 
 
 def gz_files(only_big_files: List, abs_archive_path: str) -> None:
+    timestamp = int(time.time())
+
     # gz all plain text files and remove plain these plain text afterwards
     for big_file in only_big_files:
-        timestamp = int(time.time())
         log.debug(f'big_file to gz: {big_file}')
 
         big_filename = basename(big_file)
-        big_file_archived = join(abs_archive_path, big_filename, f'_{timestamp}.gz')
+        gz_filename = f'{big_filename}_{timestamp}.gz'
+        big_file_archived = join(abs_archive_path, gz_filename)
 
         gzip_file(big_file, big_file_archived)
         remove_file(big_file)
@@ -149,7 +152,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
                 log.info(f'filename: {abs_filename}')
 
                 command_output = device.execute(command, log_stdout=True)
-                
+
                 # fixing cosmetic bug with '>' on the last line of FTD's output
                 if device_os == 'fxos' and command_output[-1:] == '>':
                     command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
@@ -198,25 +201,30 @@ def main():
     # logging level for log file
     logging_level_file = s['logging_file']
 
-    script_directory = Path(__file__).resolve().parents[0]
-    testbed_filename = f'{script_directory}/testbed.yaml'
+    script_directory = Path(__file__).resolve().parents[1]
+    testbed_filename = join(script_directory, 'config/testbed.yaml')
 
     global log
     log = sup.set_main_logging(logging_level_console, logging_level_file)
 
-    log.debug(f'testbed_filename = {testbed_filename}')
-    testbed = Genie.init(testbed_filename)
+    if exists(testbed_filename):
+        log.debug(f'testbed_filename = {testbed_filename}')
+        testbed = Genie.init(testbed_filename)
+    else:
+        log.error(f"'testbed' file does not exist. Path checked: {testbed_filename}. Exiting")
+        exit(1)
 
     commands_to_gather = {
         'fxos': ['show blocks', 'show blocks old', 'show blocks queue history detail',
                 'show blocks queue history core-local', 'show blocks old core-local',
                 'show blocks exhaustion snapshot', 'show blocks assigned', 'show blocks old dump | b 80']}
 
-    dir_name = 'gathered_commands'
+    dir_name = join(script_directory, 'gathered_commands')
 
     collect_device_commands(testbed, commands_to_gather, dir_name, file_size_to_gzip, num_to_store)
 
 
 if __name__ == '__main__':
     main()
+
 

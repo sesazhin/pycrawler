@@ -41,12 +41,12 @@ def settings(ini_path):
                                 else:
                                     logging.error(f"Options 'file_size_to_gzip' and 'num_to_store' in settings.ini "
                                                   f"must be less than or equal to 1000. Setting default values: "
-                                                  f"file_size_to_gzip: {s['file_size_to_gzip']}"
+                                                  f"file_size_to_gzip: {s['file_size_to_gzip']} "
                                                   f"num_to_store: {s['num_to_store']}.")
                             except ValueError:
                                 logging.error(f"Options 'file_size_to_gzip' and 'num_to_store' in settings.ini "
                                               f"must be numbers. Setting default values: "
-                                              f"file_size_to_gzip: {s['file_size_to_gzip']}"
+                                              f"file_size_to_gzip: {s['file_size_to_gzip']} "
                                               f"num_to_store: {s['num_to_store']}.")
 
                         else:
