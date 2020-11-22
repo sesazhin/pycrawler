@@ -8,18 +8,40 @@ For required libraries and their versions see **requirements.txt**.
 This tool has been written and tested with Python 3.8 but should work with Python 3.6 and newer versions as well.
 The tool is only supported on Linux since requires pyATS library to work (it might also work on WSL and macOS but hasn't been tested there).
 
-## To install required apps and Python libraries:
+## 1. To install required apps and Python libraries:
 ```
-sudo apt-get install python3-venv -y
 sudo apt-get install python3-dev -y
 sudo apt-get install build-essential -y
 ```
 
+## 2. It's always required to work inside Python virtual environment, hence install it:
+```
+sudo apt-get install python3-venv -y
+```
+
+## 3. Change to the directory where virtual environment to be placed and create it:
+Use the command: **python3 -m venv {venv_name}**
+For example:
+```
+python3 -m venv pycrawler
+```
+
+## 4. Activate created virtual environment (starting from this point, you should run pip and the tool from inside virtual environment):
+```
+source <path_to_venv>/bin/activate
+```
+### If you need to jump off the virtual environment, deactivate it:
+```
+source <path_to_venv>/bin/deactivate
+```
+
+## 5. Upgrade pip and pip setuptools
 ```
 pip install --upgrade pip
 pip install --upgrade pip setuptools
 ```
 
+## 6. Install pyATS and Genie libraries
 ```
 pip install pyats
 pip install genie
@@ -30,9 +52,9 @@ pip install genie
 pip install -r requirements.txt
 ```
 
-## Put testbed.yaml file to config directory (see testbed_example.yaml for reference)
+## 7. Put testbed.yaml file to config directory (see testbed_example.yaml for the reference)
 
-## Username and password for connection to devices
+## 8. Decide how to store username and password for connection to devices
 ### If you are not going to run the tool via crontab - you can use Linux environment variables to store username and password:
 Run the following commands from Bash:
 ```
