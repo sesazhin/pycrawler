@@ -19,6 +19,7 @@ from os import remove
 from os.path import isfile, join, getsize, basename
 
 from typing import List
+from typing import Dict
 
 # To handle errors with connections to devices
 from unicon.core import errors
@@ -112,7 +113,7 @@ def remove_file(oldest_file) -> None:
                   f'Insufficient privileges. Error: {e}')
 
 
-def get_files_to_gz(dir_path: str) -> List:
+def get_files_to_gz(dir_path: str, file_size_to_gzip: int) -> List:
     # dir_path = Path(__file__).resolve().parents[0]
     onlyfiles = [join(dir_path, f) for f in listdir(dir_path) if isfile(join(dir_path, f))]
     log.debug(f'onlyfiles: {onlyfiles}')
@@ -121,7 +122,7 @@ def get_files_to_gz(dir_path: str) -> List:
 
     log.debug(f'only_non_gzip_files: {only_non_gzip_files}')
 
-    file_size_to_gzip = 10 * 10 ** 6
+    file_size_to_gzip = file_size_to_gzip * 10 ** 6  # converting to Mbytes
 
     only_big_files = [filepath for filepath in only_non_gzip_files if getsize(filepath) > file_size_to_gzip]
 
@@ -145,8 +146,7 @@ def gz_files(only_big_files: List) -> None:
         remove_file(big_file)
 
 
-def remove_old_gz_files(only_big_files: List, dir_path: str) -> None:
-    # dir_path = Path(__file__).resolve().parents[0]
+def remove_old_gz_files(only_big_files: List, dir_path: str, num_to_store) -> None:
     onlyfiles = [join(dir_path, f) for f in listdir(dir_path) if isfile(join(dir_path, f))]
     only_gzip_files = [filepath for filepath in onlyfiles if '.gz' in pathlib.Path(filepath).suffixes]
 
@@ -155,9 +155,6 @@ def remove_old_gz_files(only_big_files: List, dir_path: str) -> None:
         gz_files_for_big_file = list(filter(lambda filepath: get_gzip_files(big_file, filepath), only_gzip_files))
 
         log.debug(f'only .gz files for this command output {big_file}: {gz_files_for_big_file}')
-
-        # Check number of .gz files is not more than 'num_to_store'. Otherwise remove the oldest file:
-        num_to_store = 10
 
         if len(gz_files_for_big_file) > num_to_store:
             oldest_file = min(gz_files_for_big_file)
@@ -178,7 +175,8 @@ def write_commands_to_file(abs_filename, command_output, time_now_readable):
         exit(1)
 
 
-def collect_device_commands(testbed, commands_to_gather, dir_name):
+def collect_device_commands(testbed, commands_to_gather: Dict,
+                            dir_name: str, file_size_to_gzip: int, num_to_store=10) -> None:
     abs_dir_path = path.join(path.dirname(__file__), dir_name)
 
     create_non_existing_dir(abs_dir_path)
@@ -217,11 +215,11 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
                 write_commands_to_file(abs_filename, command_output, time_now_readable)
 
             # get all big non-gz files (in plain text) for this device
-            only_big_files = get_files_to_gz(device_path)
+            only_big_files = get_files_to_gz(device_path, file_size_to_gzip)
             # gz all big plain text files for this device
             gz_files(only_big_files)
             # remove the oldest gz file for each command for this device
-            remove_old_gz_files(only_big_files, device_path)
+            remove_old_gz_files(only_big_files, device_path, num_to_store)
 
         else:
             log.error(f'No commands for operating system: {device_os} '
@@ -234,6 +232,9 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
 def main():
     logging_level_console = 'ERROR'
     logging_level_file = 'DEBUG'
+    file_size_to_gzip = 10  # Size (Mbytes) of file with commands to gzip
+    num_to_store = 10  # how many gzip files for each command to store
+
     script_directory = Path(__file__).resolve().parents[0]
     testbed_filename = f'{script_directory}/testbed.yaml'
 
@@ -250,7 +251,7 @@ def main():
 
     dir_name = 'gathered_commands'
 
-    collect_device_commands(testbed, commands_to_gather, dir_name)
+    collect_device_commands(testbed, commands_to_gather, dir_name, file_size_to_gzip, num_to_store)
 
 
 if __name__ == '__main__':
