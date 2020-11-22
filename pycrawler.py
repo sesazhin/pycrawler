@@ -207,20 +207,20 @@ def collect_device_commands(testbed, commands_to_gather, dir_name):
                 abs_filename = path.join(device_path, filename)
                 log.info(f'filename: {abs_filename}')
 
-                # get all big non-gz files (in plain text)
-                only_big_files = get_files_to_gz(device_path)
-                # gz all big plain text files
-                gz_files(only_big_files)
-                # remove the oldest gz file for each command
-                remove_old_gz_files(only_big_files, device_path)
-
                 command_output = device.execute(command, log_stdout=True)
                 
                 # fixing cosmetic bug with '>' on the last line of FTD's output
                 if device_os == 'fxos' and command_output[-1:] == '>':
                     command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
-                time.sleep(5)
                 write_commands_to_file(abs_filename, command_output, time_now_readable)
+
+            # get all big non-gz files (in plain text) for this device
+            only_big_files = get_files_to_gz(device_path)
+            # gz all big plain text files for this device
+            gz_files(only_big_files)
+            # remove the oldest gz file for each command for this device
+            remove_old_gz_files(only_big_files, device_path)
+
         else:
             log.error(f'No commands for operating system: {device_os} '
                       f'of device: {device_name} has been defined. '
