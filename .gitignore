@@ -130,6 +130,7 @@ dmypy.json
 
 # YAML since it may contain Customer's data
 *.yaml
+!config/testbed_example.yaml
 
 # Commands gathered by script:
 gathered_commands/
