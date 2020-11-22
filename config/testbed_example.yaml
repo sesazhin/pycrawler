@@ -1,0 +1,30 @@
+testbed:
+
+  name: labpyats
+  
+  credentials:
+    default:
+      username: "%ENV{PYATS_USERNAME}"
+      password: "%ENV{PYATS_PASSWORD}"
+    enable:
+      password: "%ENV{PYATS_AUTH_PASS}"
+    line:
+      password: "%ENV{PYATS_AUTH_PASS}"
+
+devices:
+
+  ftd-1:
+    alias: ftd-1
+    os: fxos
+    type: ftd
+    platform: ftd
+
+    connections:
+
+      console:
+        protocol: ssh
+        ip: 10.122.111.132
+        port: 22
+    custom:
+      abstraction:
+        order: [os, type]
