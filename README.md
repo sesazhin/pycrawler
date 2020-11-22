@@ -26,6 +26,11 @@ pip install tabulate
 pip install genie
 ```
 
+or using requirements file:
+```
+pip install -r requirements.txt
+```
+
 ## Specify username and password (as Linux env variable) to access your devices
 ```
 export PYATS_USERNAME=admin
