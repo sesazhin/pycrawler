@@ -26,7 +26,7 @@ pip install tabulate
 pip install genie
 ```
 
-or using requirements file:
+### Or using requirements file:
 ```
 pip install -r requirements.txt
 ```
