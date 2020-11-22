@@ -136,3 +136,6 @@ gathered_commands/
 
 # PyCharm:
 /.idea
+
+# Don't track log files
+/log
