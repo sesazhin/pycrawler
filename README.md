@@ -188,15 +188,15 @@ See for more information about pyATS testbed file:
 
 #### gathered_commands/ - directory which contains output of commands gathered from devices. The following sctructure used:
 ```
-gathered_commands/<device_name*>/delta/<output_of_deltas>
-gathered_commands/<device_name*>/delta/archive/<output_of_archive_deltas>
+gathered_commands/<device_name*>/deltas/<output_of_deltas>
+gathered_commands/<device_name*>/deltas/archive/<output_of_archive_deltas>
 gathered_commands/<device_name*>/command/<output_of_show_commands>
 gathered_commands/<device_name*>/command/archive/<output_of_archive_show_commands>
 ```
 \* device_name - as specified in config/testbed.yaml
 
-When to archive a file (for both delta or command) is determined by 'file_size_to_gzip' parameter in **config/settings.ini**
-How many archive files to store for the command (for both delta or command) is determined by 'num_to_store' parameter in **config/settings.ini**
+When to archive a file (for both deltas and commands) is determined by 'file_size_to_gzip' parameter in **config/settings.ini**
+How many archive files to store for the command (for both deltas and commands) is determined by 'num_to_store' parameter in **config/settings.ini**
 
 #### pycrawler_lib/ - directory which contains script files
 #### pycrawler.py - the main script file
