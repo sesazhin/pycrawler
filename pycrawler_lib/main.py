@@ -24,7 +24,7 @@ from typing import Dict
 # To handle errors with connections to devices
 from unicon.core import errors
 
-import pycrawler_lib.settings as set
+import pycrawler_lib.settings as settings
 import pycrawler_lib.supplementary as sup
 
 
@@ -132,6 +132,8 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
         device_os = device.os
         device_path = join(abs_dir_path, device_name)
         sup.create_non_existing_dir(device_path)
+        device_path_commands = join(device_path, 'commands')
+        sup.create_non_existing_dir(device_path_commands)
 
         try:
             device.connect(log_stdout=False)
@@ -148,7 +150,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
                 filename_command = command.replace(' ', '_')
                 filename_command = filename_command.replace('*', 'all')
                 filename = device_name + '_' + filename_command
-                abs_filename = join(device_path, filename)
+                abs_filename = join(device_path_commands, filename)
                 log.info(f'filename: {abs_filename}')
 
                 command_output = device.execute(command, log_stdout=True)
@@ -159,11 +161,11 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
                 write_commands_to_file(abs_filename, command_output, time_now_readable)
 
             # get all big non-gz files (in plain text) for this device
-            only_big_files = get_files_to_gz(device_path, file_size_to_gzip)
+            only_big_files = get_files_to_gz(device_path_commands, file_size_to_gzip)
 
             if len(only_big_files) > 0:
                 archive_dir_name = 'archive'
-                abs_archive_path = join(device_path, archive_dir_name)
+                abs_archive_path = join(device_path_commands, archive_dir_name)
                 sup.create_non_existing_dir(abs_archive_path)
 
                 # gz all big plain text files for this device
@@ -295,7 +297,7 @@ def main():
     par_dir_path = Path(__file__).resolve().parents[1]
     settings_file_path = join(par_dir_path, 'config', 'settings.ini')
 
-    s = set.settings(settings_file_path)
+    s = settings.settings(settings_file_path)
     logging.debug(s)
 
     # file_size_to_gzip - Size (Mbytes) of file with commands to gzip
