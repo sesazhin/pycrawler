@@ -174,9 +174,33 @@ crontab -e
 crontab -l
 ```
 
-## More
-Configuration files for pyATS:
-https://pubhub.devnetcloud.com/media/pyats/docs/configuration/index.html#pyats-configuration
+## More about credentials encryption in pyATS:
+[Configuration files for pyATS](https://pubhub.devnetcloud.com/media/pyats/docs/configuration/index.html#pyats-configuration)
+[Complete procedure to generate pyATS Secret String](https://pubhub.devnetcloud.com/media/pyats/docs/utilities/secret_strings.html#secret-strings)
 
-Complete procedure to generate pyATS Secret String:
-https://pubhub.devnetcloud.com/media/pyats/docs/utilities/secret_strings.html#secret-strings
+## Script folder sctructure and files:
+#### log/ - directory which contains pycrawler.log with detailed log information of tool's activity (up to 10 files 20 Mbytes of size each)
+#### config/settings.ini - contains tool's configurtion
+#### config/testbed.yaml - contains pyATS testbed file (information to what devices connect and how)
+See for more information about pyATS testbed file:
+[Testbed creation](https://pubhub.devnetcloud.com/media/pyats/docs/topology/creation.html#testbed-file)
+[Testbed example](https://pubhub.devnetcloud.com/media/pyats/docs/topology/example.html)
+
+#### gathered_commands/ - directory which contains output of commands gathered from devices. The following sctructure used:
+```
+gathered_commands/<device_name*>/delta/<output_of_deltas>
+gathered_commands/<device_name*>/delta/archive/<output_of_archive_deltas>
+gathered_commands/<device_name*>/command/<output_of_show_commands>
+gathered_commands/<device_name*>/command/archive/<output_of_archive_show_commands>
+```
+* device_name - as specified in config/testbed.yaml
+
+When to archive a file (for both delta or command) is determined by 'file_size_to_gzip' parameter in **config/settings.ini**
+How many archive files to store for the command (for both delta or command) is determined by 'num_to_store' parameter in **config/settings.ini**
+
+#### pycrawler_lib/ - directory which contains script files
+#### pycrawler.py - the main script file
+
+
+
+
