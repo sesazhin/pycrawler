@@ -219,6 +219,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                 try:
                     with open(flag_delta_filename, mode='r') as fp:
                         clear_timestamp = fp.read()
+                        clear_timestamp = int(clear_timestamp)
                 except PermissionError as e:
                     log.error(f'Unable to read delta file: {flag_delta_filename}.'
                               f'Insufficient privileges. Error: {e}')
@@ -239,13 +240,12 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
                         command_output = device.execute(command[0], log_stdout=True)
 
-                        # remove_file(filename)
+                        log.info(f'Run command: "{command[0]}"')
 
                         # fixing cosmetic bug with '>' on the last line of FTD's output
                         if device_os == 'fxos' and command_output[-1:] == '>':
                             command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
 
-                        clear_timestamp = int(clear_timestamp)
                         clear_time_readable = datetime.datetime.fromtimestamp(clear_timestamp)
                         clear_time_readable = clear_time_readable.strftime('%d %b %Y %H:%M:%S')
 
@@ -276,7 +276,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
             # Block of run clear commands and update tmp file with new timestamp:
             for command in commands_to_gather[device_os]:
                 command_output = device.execute(command[1], log_stdout=True)
-                log.info(f'Run command: {command[1]}. Command_output: {command_output}')
+                log.info(f'Run command: "{command[1]}"')
 
             try:
                 with open(flag_delta_filename, mode='w') as fp:
