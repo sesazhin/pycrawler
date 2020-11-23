@@ -194,7 +194,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
         device_os = device.os
         device_path = join(abs_dir_path, device_name)
         sup.create_non_existing_dir(device_path)
-        device_path_delta = join(device_path, 'delta')
+        device_path_delta = join(device_path, 'deltas')
         sup.create_non_existing_dir(device_path_delta)
 
         try:
