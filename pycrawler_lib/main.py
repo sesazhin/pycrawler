@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime
 import gzip
 import logging
 import logging.handlers
@@ -191,7 +192,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
         device_os = device.os
         device_path = join(abs_dir_path, device_name)
         sup.create_non_existing_dir(device_path)
-        device_path_delta = join(adevice_path, 'delta')
+        device_path_delta = join(device_path, 'delta')
         sup.create_non_existing_dir(device_path_delta)
 
         try:
@@ -214,7 +215,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                 log.info(f'flag_delta_filename {flag_delta_filename} exists')
 
                 for command in commands_to_gather[device_os]:
-                    filename_command = command.replace(' ', '_')
+                    filename_command = command[0].replace(' ', '_')
                     filename_command = filename_command.replace('*', 'all')
                     filename = device_name + '_' + filename_command
                     abs_filename = join(device_path_delta, filename)
@@ -230,7 +231,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
                     try:
                         with open(flag_delta_filename, mode='r') as fp:
-                            fp.read(clear_timestamp)
+                            clear_timestamp = fp.read()
                     except PermissionError as e:
                         log.error(f'Unable to read delta file: {flag_delta_filename}.'
                                   f'Insufficient privileges. Error: {e}')
@@ -270,7 +271,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
             try:
                 with open(flag_delta_filename, mode='w') as fp:
-                    fp.write(current_timestamp)
+                    fp.write(str(current_timestamp))
             except PermissionError as e:
                 log.error(f'Unable to create delta file: {flag_delta_filename}.'
                           f'Insufficient privileges. Error: {e}')
@@ -320,6 +321,10 @@ def main():
                 'show crypto accelerator statistics','show asp drop']}
 
     dir_name = join(script_directory, 'gathered_commands')
+    delta_commands_to_gather = {
+            'fxos': [('show asp drop', 'clear asp drop'),
+                     ('show crypto accelerator statistics',
+                     'clear crypto accelerator statistics')]}
 
     # collect_device_commands(testbed, commands_to_gather, dir_name, file_size_to_gzip, num_to_store)
     collect_delta_device_commands(testbed, delta_commands_to_gather, dir_name, file_size_to_gzip, num_to_store)
