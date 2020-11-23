@@ -337,7 +337,7 @@ def main():
                      ('show crypto accelerator statistics',
                      'clear crypto accelerator statistics')]}
 
-    # collect_device_commands(testbed, commands_to_gather, dir_name, file_size_to_gzip, num_to_store)
+    collect_device_commands(testbed, commands_to_gather, dir_name, file_size_to_gzip, num_to_store)
     collect_delta_device_commands(testbed, delta_commands_to_gather, dir_name, file_size_to_gzip, num_to_store)
 
 
