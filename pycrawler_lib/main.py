@@ -204,61 +204,70 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
         time_now_readable = time.strftime('%d %b %Y %H:%M:%S', time.localtime())
         current_timestamp = int(time.time())
+        skip_show_commands = False
 
         log.info(f'time_now: {time_now_readable}')
 
         if commands_to_gather.get(device_os):
-            flag_delta_filename = join(Path(__file__).resolve().parents[0], 'clear_flag.tmp')
+            flag_delta_filename = join(Path(__file__).resolve().parents[1], '.clear_flag')
 
             if exists(flag_delta_filename):
                 # counters have been cleared already
                 log.info(f'flag_delta_filename {flag_delta_filename} exists')
 
-                for command in commands_to_gather[device_os]:
-                    filename_command = command[0].replace(' ', '_')
-                    filename_command = filename_command.replace('*', 'all')
-                    filename = device_name + '_' + filename_command
-                    abs_filename = join(device_path_delta, filename)
-                    log.info(f'filename: {abs_filename}')
+                # check that we are able to read from delta file. Otherwise there is no point to collect show commands
+                try:
+                    with open(flag_delta_filename, mode='r') as fp:
+                        clear_timestamp = fp.read()
+                except PermissionError as e:
+                    log.error(f'Unable to read delta file: {flag_delta_filename}.'
+                              f'Insufficient privileges. Error: {e}')
+                    skip_show_commands = True
 
-                    command_output = device.execute(command[0], log_stdout=True)
+                except ValueError as e:
+                    log.error(f'Unable to read delta file: {flag_delta_filename}.'
+                              f'Non-integer value has been written or empty file. Error: {e}')
+                    skip_show_commands = True
 
-                    # remove_file(filename)
+                if not skip_show_commands:
+                    for command in commands_to_gather[device_os]:
+                        filename_command = command[0].replace(' ', '_')
+                        filename_command = filename_command.replace('*', 'all')
+                        filename = device_name + '_' + filename_command
+                        abs_filename = join(device_path_delta, filename)
+                        log.info(f'filename: {abs_filename}')
 
-                    # fixing cosmetic bug with '>' on the last line of FTD's output
-                    if device_os == 'fxos' and command_output[-1:] == '>':
-                        command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
+                        command_output = device.execute(command[0], log_stdout=True)
 
-                    try:
-                        with open(flag_delta_filename, mode='r') as fp:
-                            clear_timestamp = fp.read()
-                    except PermissionError as e:
-                        log.error(f'Unable to read delta file: {flag_delta_filename}.'
-                                  f'Insufficient privileges. Error: {e}')
-                        exit(1)
+                        # remove_file(filename)
 
-                    clear_timestamp = int(clear_timestamp)
-                    clear_time_readable = datetime.datetime.fromtimestamp(clear_timestamp)
-                    clear_time_readable = clear_time_readable.strftime('%d %b %Y %H:%M:%S')
+                        # fixing cosmetic bug with '>' on the last line of FTD's output
+                        if device_os == 'fxos' and command_output[-1:] == '>':
+                            command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
 
-                    seconds_interval = current_timestamp - clear_timestamp
+                        clear_timestamp = int(clear_timestamp)
+                        clear_time_readable = datetime.datetime.fromtimestamp(clear_timestamp)
+                        clear_time_readable = clear_time_readable.strftime('%d %b %Y %H:%M:%S')
 
-                    delta_time_string = f'Delta output for the interval: {clear_time_readable} - {time_now_readable}.' \
-                                        f' Interval in seconds: {seconds_interval}'
-                    write_commands_to_file(abs_filename, command_output, delta_time_string)
+                        seconds_interval = current_timestamp - clear_timestamp
 
-                # get all big non-gz files (in plain text) for this device
-                only_big_files = get_files_to_gz(device_path_delta, file_size_to_gzip)
+                        delta_time_string = f'Delta output for the interval: ' \
+                                            f'{clear_time_readable} - {time_now_readable}.' \
+                                            f' Interval: {seconds_interval} sec'
+                        write_commands_to_file(abs_filename, command_output, delta_time_string)
 
-                if len(only_big_files) > 0:
-                    archive_dir_name = 'archive'
-                    abs_archive_path = join(device_path_delta, archive_dir_name)
-                    sup.create_non_existing_dir(abs_archive_path)
+                    # get all big non-gz files (in plain text) for this device
+                    only_big_files = get_files_to_gz(device_path_delta, file_size_to_gzip)
 
-                    # gz all big plain text files for this device
-                    gz_files(only_big_files, abs_archive_path)
-                    # remove the oldest gz file for each command for this device
-                    remove_old_gz_files(only_big_files, abs_archive_path, num_to_store)
+                    if len(only_big_files) > 0:
+                        archive_dir_name = 'archive'
+                        abs_archive_path = join(device_path_delta, archive_dir_name)
+                        sup.create_non_existing_dir(abs_archive_path)
+
+                        # gz all big plain text files for this device
+                        gz_files(only_big_files, abs_archive_path)
+                        # remove the oldest gz file for each command for this device
+                        remove_old_gz_files(only_big_files, abs_archive_path, num_to_store)
 
             else:
                 # counters haven't been cleared already
