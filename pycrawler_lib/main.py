@@ -328,8 +328,7 @@ def main():
     commands_to_gather = {
         'fxos': ['show blocks', 'show blocks old', 'show blocks queue history detail',
                 'show blocks queue history core-local', 'show blocks old core-local',
-                'show blocks exhaustion snapshot', 'show blocks assigned', 'show blocks old dump | b 80',
-                'show crypto accelerator statistics','show asp drop']}
+                'show blocks exhaustion snapshot', 'show blocks assigned', 'show blocks old dump | b 80']}
 
     dir_name = join(script_directory, 'gathered_commands')
     delta_commands_to_gather = {
