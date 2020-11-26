@@ -153,7 +153,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
                 abs_filename = join(device_path_commands, filename)
                 log.info(f'filename: {abs_filename}')
 
-                command_output = device.execute(command, log_stdout=True)
+                command_output = device.execute(command, log_stdout=False)
 
                 # fixing cosmetic bug with '>' on the last line of FTD's output
                 if device_os == 'fxos' and command_output[-1:] == '>':
@@ -240,7 +240,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         abs_filename = join(device_path_delta, filename)
                         log.info(f'filename: {abs_filename}')
 
-                        command_output = device.execute(command[0], log_stdout=True)
+                        command_output = device.execute(command[0], log_stdout=False)
 
                         log.info(f'Run command: "{command[0]}"')
 
@@ -277,7 +277,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
             # Block of run clear commands and update tmp file with new timestamp:
             for command in commands_to_gather[device_os]:
-                command_output = device.execute(command[1], log_stdout=True)
+                command_output = device.execute(command[1], log_stdout=False)
                 log.info(f'Run command: "{command[1]}"')
 
             try:
