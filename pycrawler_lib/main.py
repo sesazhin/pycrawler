@@ -146,6 +146,12 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
         log.info(f'time_now: {time_now_readable}')
 
         if commands_to_gather.get(device_os):
+            # get failover state of this device
+            if device_os == 'fxos':
+                log.debug('running "show failover | include This host"')
+                command_output = device.execute('show failover | include "This host"', log_stdout=False)
+                log.info(f'show_failover: {command_output}')
+
             for command in commands_to_gather[device_os]:
                 filename_command = command.replace(' ', '_')
                 filename_command = filename_command.replace('*', 'all')
