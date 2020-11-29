@@ -79,7 +79,7 @@ These environment variables to be used in the following configuration in config/
       password: "%ENV{PYATS_AUTH_PASS}"
 ```
 
-### If this tool is going to be run with crontab - it's recommended to store credentials for access devices in testbed.yaml file
+### If this tool is going to be run with crontab - it's recommended to store credentials for access devices in testbed.yaml file rather than in environment variables
 While you could use the following configuration to store the username and password in testbed.yaml, it's not secure because if testbed.yaml is stolen - credentials would become compromised. Below is an example how to store credentials in testbed.yaml (cisco\cisco_pass) - **NOT RECOMMENDED!**:
 ```
   credentials:
@@ -116,26 +116,33 @@ source <path_to_venv>/bin/activate
 pip install cryptography
 ```
 
-3. Generate a cryptographic key:
+3. Create configuration file for pyATS: **vim $VIRTUAL_ENV/pyats.conf** and add the following:
+```
+[secrets]
+string.representer = pyats.utils.secret_strings.FernetSecretStringRepresenter
+```
+
+4. Generate a cryptographic key:
 ```
 pyats secret keygen
 Newly generated key :
 dSvoKX23jKQADn20INt3W3B5ogUQmh6Pq00czddHtgU=
 ```
 
-4. Create configuration file for pyATS: **vim $VIRTUAL_ENV/pyats.conf** and add the following:
+5. Update your pyATS configuration file as follows:
+
 ```
 [secrets]
 string.representer = pyats.utils.secret_strings.FernetSecretStringRepresenter
 string.key = dSvoKX23jKQADn20INt3W3B5ogUQmh6Pq00czddHtgU=
 ```
 
-5. Ensure the permissions are restricted on your pyATS configuration file to prevent other users from reading it:
+6. Ensure the permissions are restricted on your pyATS configuration file to prevent other users from reading it:
 ```
 chmod 600 $VIRTUAL_ENV/pyats.conf
 ```
 
-6. Encode a password:
+7. Encode a password:
 ```
 pyats secret encode
 Password: cisco_pass
@@ -143,24 +150,24 @@ Encoded string :
 gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=
 ```
 
-7. Do a test decode of the encoded password:
+8. Do a test decode of the encoded password:
 ```
 pyats secret decode gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=
 Decoded string :
 cisco_pass
 ```
 
-8. Add your encoded password to a testbed.yaml %ENC{} block. Now your password is secured.\n
+9. Add your encoded password to a testbed.yaml %ENC{} block. Now your password is secured.\n
 The only way to decode the password from the testbed YAML file is to use the same pyATS configuration file (**$VIRTUAL_ENV/pyats.conf**) used to encode the password:
 ```
   credentials:
     default:
       username: "cisco"
-      password: "ENC{gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=}"
+      password: "%ENC{gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=}"
     enable:
-      password: "ENC{gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=}"
+      password: "%ENC{gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=}"
     line:
-      password: "ENC{gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=}"
+      password: "%ENC{gAAAAABdsgvwElU9_3RTZsRnd4b1l3Es2gV6Y_DUnUE8C9y3SdZGBc2v0B2m9sKVz80jyeYhlWKMDwtqfwlbg4sQ2Y0a843luOrZyyOuCgZ7bxE5X3Dk_NY=}"
 ```
 
 ## (Optinal) 9. Add tool in crontab
@@ -188,15 +195,15 @@ See for more information about pyATS testbed file:
 
 #### gathered_commands/ - directory which contains output of commands gathered from devices. The following sctructure used:
 ```
-gathered_commands/<device_name*>/delta/<output_of_deltas>
-gathered_commands/<device_name*>/delta/archive/<output_of_archive_deltas>
+gathered_commands/<device_name*>/deltas/<output_of_deltas>
+gathered_commands/<device_name*>/deltas/archive/<output_of_archive_deltas>
 gathered_commands/<device_name*>/command/<output_of_show_commands>
 gathered_commands/<device_name*>/command/archive/<output_of_archive_show_commands>
 ```
 \* device_name - as specified in config/testbed.yaml
 
-When to archive a file (for both delta or command) is determined by 'file_size_to_gzip' parameter in **config/settings.ini**
-How many archive files to store for the command (for both delta or command) is determined by 'num_to_store' parameter in **config/settings.ini**
+When to archive a file (for both deltas and commands) is determined by 'file_size_to_gzip' parameter in **config/settings.ini**
+How many archive files to store for the command (for both deltas and commands) is determined by 'num_to_store' parameter in **config/settings.ini**
 
 #### pycrawler_lib/ - directory which contains script files
 #### pycrawler.py - the main script file

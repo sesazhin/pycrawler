@@ -153,7 +153,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
                 abs_filename = join(device_path_commands, filename)
                 log.info(f'filename: {abs_filename}')
 
-                command_output = device.execute(command, log_stdout=True)
+                command_output = device.execute(command, log_stdout=False)
 
                 # fixing cosmetic bug with '>' on the last line of FTD's output
                 if device_os == 'fxos' and command_output[-1:] == '>':
@@ -194,7 +194,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
         device_os = device.os
         device_path = join(abs_dir_path, device_name)
         sup.create_non_existing_dir(device_path)
-        device_path_delta = join(device_path, 'delta')
+        device_path_delta = join(device_path, 'deltas')
         sup.create_non_existing_dir(device_path_delta)
 
         try:
@@ -240,7 +240,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         abs_filename = join(device_path_delta, filename)
                         log.info(f'filename: {abs_filename}')
 
-                        command_output = device.execute(command[0], log_stdout=True)
+                        command_output = device.execute(command[0], log_stdout=False)
 
                         log.info(f'Run command: "{command[0]}"')
 
@@ -277,7 +277,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
             # Block of run clear commands and update tmp file with new timestamp:
             for command in commands_to_gather[device_os]:
-                command_output = device.execute(command[1], log_stdout=True)
+                command_output = device.execute(command[1], log_stdout=False)
                 log.info(f'Run command: "{command[1]}"')
 
             try:
@@ -328,8 +328,7 @@ def main():
     commands_to_gather = {
         'fxos': ['show blocks', 'show blocks old', 'show blocks queue history detail',
                 'show blocks queue history core-local', 'show blocks old core-local',
-                'show blocks exhaustion snapshot', 'show blocks assigned', 'show blocks old dump | b 80',
-                'show crypto accelerator statistics','show asp drop']}
+                'show blocks exhaustion snapshot', 'show blocks assigned', 'show blocks old dump | b 80']}
 
     dir_name = join(script_directory, 'gathered_commands')
     delta_commands_to_gather = {
