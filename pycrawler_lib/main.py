@@ -288,6 +288,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         delta_time_string = f'Delta output for the interval: ' \
                                             f'{clear_time_readable} - {time_now_readable}.' \
                                             f' Interval: {seconds_interval} sec'
+                        log.info(f'additional_info (delta): {additional_info}')
                         write_commands_to_file(abs_filename, command_output, delta_time_string, additional_info)
 
                     # get all big non-gz files (in plain text) for this device
