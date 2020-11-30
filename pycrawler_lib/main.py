@@ -105,11 +105,10 @@ def remove_old_gz_files(only_big_files: List, dir_path: str, num_to_store) -> No
             remove_file(oldest_file)
 
 
-def write_commands_to_file(abs_filename, command_output, time_now_readable):
+def write_commands_to_file(abs_filename: str, command_output: str, time_now_readable: str, additional_info='') -> None:
     try:
         with open(abs_filename, "a") as file_output:
-            file_output.write(f'\n*****{time_now_readable}*****\n')
-            # log.debug(command_output)a
+            file_output.write(f'\n*****{time_now_readable}. {additional_info}*****\n')
             log.debug(f'writing command output to file: {abs_filename}')
             file_output.write(command_output)
 
@@ -117,6 +116,21 @@ def write_commands_to_file(abs_filename, command_output, time_now_readable):
         log.error(f'Unable to write output to file: {abs_filename}.'
                   f'Due to error: {e}')
         exit(1)
+
+
+def get_failover_status(command_output):
+    failover_status = None
+
+    for failover_command_line in command_output.splitlines():
+        failover_status = re.match(r'.*(This host: )(.*)', failover_command_line)
+        if failover_status:
+            failover_status = failover_status.group(2)
+            break
+
+    if not failover_status:
+        failover_status = f'Unit failover status: {failover_status}'
+
+    return failover_status
 
 
 def collect_device_commands(testbed, commands_to_gather: Dict,
@@ -146,11 +160,13 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
         log.info(f'time_now: {time_now_readable}')
 
         if commands_to_gather.get(device_os):
+            additional_info = ''
             # get failover state of this device
             if device_os == 'fxos':
                 log.debug('running "show failover | include This host"')
                 command_output = device.execute('show failover | include "This host"', log_stdout=False)
-                log.info(f'show_failover: {command_output}')
+                additional_info = get_failover_status(command_output)  # get failover status
+                log.info(f'Got failover status: {additional_info}')
 
             for command in commands_to_gather[device_os]:
                 filename_command = command.replace(' ', '_')
@@ -164,7 +180,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
                 # fixing cosmetic bug with '>' on the last line of FTD's output
                 if device_os == 'fxos' and command_output[-1:] == '>':
                     command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
-                write_commands_to_file(abs_filename, command_output, time_now_readable)
+                write_commands_to_file(abs_filename, command_output, time_now_readable, additional_info)
 
             # get all big non-gz files (in plain text) for this device
             only_big_files = get_files_to_gz(device_path_commands, file_size_to_gzip)
@@ -250,6 +266,14 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
                         log.info(f'Run command: "{command[0]}"')
 
+                        additional_info = ''
+                        # get failover state of this device
+                        if device_os == 'fxos':
+                            log.debug('running "show failover | include This host"')
+                            command_output = device.execute('show failover | include "This host"', log_stdout=False)
+                            additional_info = get_failover_status(command_output)  # get failover status
+                            log.info(f'Got failover status: {additional_info}')
+
                         # fixing cosmetic bug with '>' on the last line of FTD's output
                         if device_os == 'fxos' and command_output[-1:] == '>':
                             command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
@@ -262,7 +286,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         delta_time_string = f'Delta output for the interval: ' \
                                             f'{clear_time_readable} - {time_now_readable}.' \
                                             f' Interval: {seconds_interval} sec'
-                        write_commands_to_file(abs_filename, command_output, delta_time_string)
+                        write_commands_to_file(abs_filename, command_output, delta_time_string, additional_info)
 
                     # get all big non-gz files (in plain text) for this device
                     only_big_files = get_files_to_gz(device_path_delta, file_size_to_gzip)
@@ -283,7 +307,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
             # Block of run clear commands and update tmp file with new timestamp:
             for command in commands_to_gather[device_os]:
-                command_output = device.execute(command[1], log_stdout=False)
+                device.execute(command[1], log_stdout=False)
                 log.info(f'Run command: "{command[1]}"')
 
             try:
