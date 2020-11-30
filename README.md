@@ -241,6 +241,3 @@ How many archive files to store for the command (for both deltas and commands) i
 ```
 *****Delta output for the interval: ST: Mon Nov 30 18:27:10 MSK 2020 - ST: Mon Nov 30 18:28:09 MSK 2020. Interval: 59 sec*****
 ```
-
-
-
