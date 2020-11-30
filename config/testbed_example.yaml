@@ -13,18 +13,24 @@ testbed:
 
 devices:
 
-  ftd-1:
-    alias: ftd-1
+  ftd-1-pri:
     os: fxos
     type: ftd
-    platform: ftd
-
+    
     connections:
-
-      console:
+      cli:
         protocol: ssh
-        ip: 10.122.111.132
+        ip: 198.18.1.1
         port: 22
-    custom:
-      abstraction:
-        order: [os, type]
+        
+  ftd-1-sec:
+    os: fxos
+    type: ftd
+    
+    connections:
+      cli:
+        protocol: ssh
+        ip: 198.18.1.2
+        port: 22
+        
+   
