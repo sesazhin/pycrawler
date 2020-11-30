@@ -349,8 +349,8 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
             try:
                 with open(flag_delta_filename, mode='w') as fp:
-                    # write time to .clear_flag (without TZ):
-                    fp.write(str(current_timestamp))
+                    # write time to .clear_flag (with ST:/DT: and TZ):
+                    fp.write(str(time_now_readable_full))
             except PermissionError as e:
                 log.error(f'Unable to create delta file: {flag_delta_filename}.'
                           f'Insufficient privileges. Error: {e}')
