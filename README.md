@@ -52,6 +52,11 @@ pip install pyats
 pip install genie
 ```
 
+### Install additional libraries:
+```
+pip install dateparser
+```
+
 ### Or using requirements file:
 ```
 pip install -r requirements.txt
