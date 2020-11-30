@@ -169,7 +169,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
                 log.debug('running "show failover | include This host"')
                 command_output = device.execute('show failover | include "This host"', log_stdout=False)
                 additional_info = get_failover_status(command_output)  # get failover status
-                log.info(f'Got failover status: {additional_info}')
+                log.debug(f'Got failover status: {additional_info}')
 
             for command in commands_to_gather[device_os]:
                 filename_command = command.replace(' ', '_')
@@ -271,7 +271,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                             log.debug('running "show failover | include This host"')
                             command_output = device.execute('show failover | include "This host"', log_stdout=False)
                             additional_info = get_failover_status(command_output)  # get failover status
-                            log.info(f'Got failover status: {additional_info}')
+                            log.debug(f'Got failover status: {additional_info}')
 
                         command_output = device.execute(command[0], log_stdout=False)
 
@@ -289,7 +289,6 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         delta_time_string = f'Delta output for the interval: ' \
                                             f'{clear_time_readable} - {time_now_readable}.' \
                                             f' Interval: {seconds_interval} sec'
-                        log.info(f'additional_info (delta): {additional_info}')
                         write_commands_to_file(abs_filename, command_output, delta_time_string, additional_info)
 
                     # get all big non-gz files (in plain text) for this device
