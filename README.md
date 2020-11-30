@@ -218,25 +218,25 @@ How many archive files to store for the command (for both deltas and commands) i
    It will use time from host where the tool is running and the following prefix would be added in the begining of line with time: **ST:**
 
 ### Examples:
-#### 1.1 Commands (time taken from device):
+#### 1.1. Commands (time taken from device):
 **cat gathered_commands/ftd-1/commands/ftd-1_show_blocks**
 ```
 *****DT: Mon Nov 30 18:26:00 EST 2020*****
 ```
 
-#### 1.2 Commands (time taken from host where tool is running):
+#### 1.2. Commands (time taken from host where tool is running):
 **cat gathered_commands/ftd-1/commands/ftd-1_show_blocks**
 ```
 *****ST: Mon Nov 30 18:26:00 MSK 2020*****
 ```
 
-#### 2.1 Deltas (time taken from device):
+#### 2.1. Deltas (time taken from device):
 **cat gathered_commands/ftd-1/deltas/ftd-1_show_asp_drop**
 ```
 *****Delta output for the interval: DT: Mon Nov 30 18:25:16 EST 2020 - DT: Mon Nov 30 18:26:09 EST 2020. Interval: 53 sec*****
 ```
 
-#### 2.2 Deltas (time taken from host where tool is running):
+#### 2.2. Deltas (time taken from host where tool is running):
 **cat gathered_commands/ftd-1/deltas/ftd-1_show_asp_drop**
 ```
 *****Delta output for the interval: ST: Mon Nov 30 18:27:10 MSK 2020 - ST: Mon Nov 30 18:28:09 MSK 2020. Interval: 59 sec*****
