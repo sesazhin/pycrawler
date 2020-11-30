@@ -108,7 +108,7 @@ def remove_old_gz_files(only_big_files: List, dir_path: str, num_to_store) -> No
 def write_commands_to_file(abs_filename: str, command_output: str, time_now_readable: str, additional_info='') -> None:
     try:
         with open(abs_filename, "a") as file_output:
-            file_output.write(f'\n*****{time_now_readable}. {additional_info}*****\n')
+            file_output.write(f'\n*****{time_now_readable}{additional_info}*****\n')
             log.debug(f'writing command output to file: {abs_filename}')
             file_output.write(command_output)
 
@@ -119,7 +119,7 @@ def write_commands_to_file(abs_filename: str, command_output: str, time_now_read
 
 
 def get_failover_status(command_output):
-    failover_status = None
+    failover_status = ''
 
     for failover_command_line in command_output.splitlines():
         failover_status = re.match(r'.*(This host: )(.*)', failover_command_line)
@@ -127,8 +127,10 @@ def get_failover_status(command_output):
             failover_status = failover_status.group(2)
             break
 
-    if not failover_status:
-        failover_status = f'Unit failover status: {failover_status}'
+    if failover_status:
+        failover_status = f' .Unit failover status: {failover_status}'
+    else:
+        failover_status = ''
 
     return failover_status
 
