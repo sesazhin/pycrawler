@@ -236,7 +236,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
         log.info(f'time_now: {time_now_readable}')
 
         if commands_to_gather.get(device_os):
-            flag_delta_filename = join(Path(__file__).resolve().parents[1], '.clear_flag')
+            flag_delta_filename = join(device_path_delta, '.clear_flag')
 
             if exists(flag_delta_filename):
                 # counters have been cleared already
