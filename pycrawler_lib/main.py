@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import dateparser
 import datetime
 import gzip
 import logging
@@ -9,8 +10,6 @@ import shutil
 import time
 
 from genie.conf import Genie
-
-from os import mkdir
 
 from pathlib import Path
 
@@ -136,6 +135,34 @@ def get_failover_status(command_output):
     return failover_status
 
 
+def get_time_ftd(command_output):
+    device_time_now = ''
+    for time_command_line in command_output.splitlines():
+        device_time_now = re.match(r'Localtime - (.*)', time_command_line)
+        if device_time_now:
+            device_time_now = device_time_now.group(1)
+            break
+
+    return device_time_now
+
+
+def get_time(device, device_os: str) -> str:
+    time_now_readable = f"ST:{time.strftime('%d %b %Y %Z %H:%M:%S', time.localtime())}"
+    log.info(f'time_now: {time_now_readable}')
+
+    if device_os == 'fxos':
+        log.info('>> running "show time"')
+        command_output = device.execute('show time', log_stdout=False)
+        ftd_time_now = get_time_ftd(command_output)  # get failover status
+        log.info(f'>> Got time: {ftd_time_now}')
+
+        if ftd_time_now:
+            time_now_readable = f'DT:{ftd_time_now}'
+            log.info(f'>> Got time from ftd: {time_now_readable}')
+
+    return time_now_readable
+
+
 def collect_device_commands(testbed, commands_to_gather: Dict,
                             dir_name: str, file_size_to_gzip: int, num_to_store=10) -> None:
     abs_dir_path = join(dirname(__file__), dir_name)
@@ -159,8 +186,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
                       f'Check connectivity and try again.')
             continue
 
-        time_now_readable = time.strftime('%d %b %Y %H:%M:%S', time.localtime())
-        log.info(f'time_now: {time_now_readable}')
+        time_now_readable = get_time(device, device_os)
 
         if commands_to_gather.get(device_os):
             additional_info = ''
@@ -206,6 +232,12 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
             continue
 
 
+def time_gmt_format(str_datetime):
+    # from string like "Mon Nov 30 13:44:43 EST 2020" to 'Mon Nov 30 13:46:43 2020'
+    date_time_obj = dateparser.parse(str_datetime, date_formats=['%a %b %d %H:%M:%S %Z %Y'])
+    return date_time_obj
+
+
 def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                             dir_name: str, file_size_to_gzip: int, num_to_store=10) -> None:
     abs_dir_path = join(dirname(__file__), dir_name)
@@ -229,11 +261,14 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                       f'Check connectivity and try again.')
             continue
 
-        time_now_readable = time.strftime('%d %b %Y %H:%M:%S', time.localtime())
-        current_timestamp = int(time.time())
+        time_now_readable = get_time(device, device_os)
+        # to strip leading ST: or DT:
+        time_now_readable = time_now_readable[3:]
+        current_timestamp = time_gmt_format(time_now_readable)
+
         skip_show_commands = False
 
-        log.info(f'time_now: {time_now_readable}')
+        log.info(f'>>> time_now: {current_timestamp}')
 
         if commands_to_gather.get(device_os):
             flag_delta_filename = join(device_path_delta, '.clear_flag')
@@ -245,8 +280,10 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                 # check that we are able to read from delta file. Otherwise there is no point to collect show commands
                 try:
                     with open(flag_delta_filename, mode='r') as fp:
+                        # read time from .clear_flag file to string (without TZ):
                         clear_timestamp = fp.read()
-                        clear_timestamp = int(clear_timestamp)
+                        # convert to datetime:
+                        clear_timestamp = time_gmt_format(clear_timestamp)
                 except PermissionError as e:
                     log.error(f'Unable to read delta file: {flag_delta_filename}.'
                               f'Insufficient privileges. Error: {e}')
@@ -281,13 +318,15 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         if device_os == 'fxos' and command_output[-1:] == '>':
                             command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
 
+                        '''
                         clear_time_readable = datetime.datetime.fromtimestamp(clear_timestamp)
-                        clear_time_readable = clear_time_readable.strftime('%d %b %Y %H:%M:%S')
+                        clear_time_readable = clear_time_readable.strftime('%d %b %Y%H:%M:%S')
+                        '''
 
-                        seconds_interval = current_timestamp - clear_timestamp
+                        seconds_interval = round((current_timestamp - clear_timestamp).total_seconds())
 
                         delta_time_string = f'Delta output for the interval: ' \
-                                            f'{clear_time_readable} - {time_now_readable}.' \
+                                            f'{clear_timestamp} - {current_timestamp}.' \
                                             f' Interval: {seconds_interval} sec'
                         write_commands_to_file(abs_filename, command_output, delta_time_string, additional_info)
 
@@ -315,7 +354,8 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
             try:
                 with open(flag_delta_filename, mode='w') as fp:
-                    fp.write(str(current_timestamp))
+                    # write time to .clear_flag (without TZ):
+                    fp.write(current_timestamp)
             except PermissionError as e:
                 log.error(f'Unable to create delta file: {flag_delta_filename}.'
                           f'Insufficient privileges. Error: {e}')
