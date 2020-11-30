@@ -264,10 +264,6 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         abs_filename = join(device_path_delta, filename)
                         log.info(f'filename: {abs_filename}')
 
-                        command_output = device.execute(command[0], log_stdout=False)
-
-                        log.info(f'Run command: "{command[0]}"')
-
                         additional_info = ''
                         # get failover state of this device
                         if device_os == 'fxos':
@@ -275,6 +271,10 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                             command_output = device.execute('show failover | include "This host"', log_stdout=False)
                             additional_info = get_failover_status(command_output)  # get failover status
                             log.info(f'Got failover status: {additional_info}')
+
+                        command_output = device.execute(command[0], log_stdout=False)
+
+                        log.info(f'Run command: "{command[0]}"')
 
                         # fixing cosmetic bug with '>' on the last line of FTD's output
                         if device_os == 'fxos' and command_output[-1:] == '>':
