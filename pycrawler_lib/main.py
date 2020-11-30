@@ -147,17 +147,17 @@ def get_time_ftd(command_output):
 
 
 def get_time(device, device_os: str) -> str:
-    time_now_readable = f"ST:{time.strftime('%d %b %Y %Z %H:%M:%S', time.localtime())}"
-    log.info(f'time_now: {time_now_readable}')
+    time_now_readable = f"ST: {time.strftime('%d %b %Y %Z %H:%M:%S', time.localtime())}"
+    # log.info(f'time_now: {time_now_readable}')
 
     if device_os == 'fxos':
         log.info('>> running "show time"')
         command_output = device.execute('show time', log_stdout=False)
         ftd_time_now = get_time_ftd(command_output)  # get failover status
-        log.info(f'>> Got time: {ftd_time_now}')
+        log.info(f'>> Got time from device: {ftd_time_now}')
 
         if ftd_time_now:
-            time_now_readable = f'DT:{ftd_time_now}'
+            time_now_readable = f'DT: {ftd_time_now}'
             log.info(f'>> Got time from ftd: {time_now_readable}')
 
     return time_now_readable
@@ -261,9 +261,9 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                       f'Check connectivity and try again.')
             continue
 
-        time_now_readable = get_time(device, device_os)
+        time_now_readable_full = get_time(device, device_os)
         # to strip leading ST: or DT:
-        time_now_readable = time_now_readable[3:]
+        time_now_readable = time_now_readable_full[4:]
         current_timestamp = time_gmt_format(time_now_readable)
 
         skip_show_commands = False
@@ -281,9 +281,9 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                 try:
                     with open(flag_delta_filename, mode='r') as fp:
                         # read time from .clear_flag file to string (without TZ):
-                        clear_timestamp = fp.read()
+                        clear_timestamp_full = fp.read()
                         # convert to datetime:
-                        clear_timestamp = time_gmt_format(clear_timestamp)
+                        clear_timestamp = time_gmt_format(clear_timestamp_full[4:])
                 except PermissionError as e:
                     log.error(f'Unable to read delta file: {flag_delta_filename}.'
                               f'Insufficient privileges. Error: {e}')
@@ -318,15 +318,10 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         if device_os == 'fxos' and command_output[-1:] == '>':
                             command_output = '\n'.join(command_output.split('\n')[:-1]) + '\n'
 
-                        '''
-                        clear_time_readable = datetime.datetime.fromtimestamp(clear_timestamp)
-                        clear_time_readable = clear_time_readable.strftime('%d %b %Y%H:%M:%S')
-                        '''
-
                         seconds_interval = round((current_timestamp - clear_timestamp).total_seconds())
 
                         delta_time_string = f'Delta output for the interval: ' \
-                                            f'{clear_timestamp} - {current_timestamp}.' \
+                                            f'{clear_timestamp_full} - {time_now_readable_full}.' \
                                             f' Interval: {seconds_interval} sec'
                         write_commands_to_file(abs_filename, command_output, delta_time_string, additional_info)
 
