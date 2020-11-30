@@ -128,7 +128,8 @@ def get_failover_status(command_output):
             break
 
     if failover_status:
-        failover_status = f' .Unit failover status: {failover_status}'
+        failover_status = failover_status.strip()
+        failover_status = f'. Unit failover status: {failover_status}'
     else:
         failover_status = ''
 
