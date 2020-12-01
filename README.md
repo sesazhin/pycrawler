@@ -193,6 +193,13 @@ crontab -l
 ## Script folder sctructure and files:
 #### log/ - directory which contains pycrawler.log with detailed log information of tool's activity (up to 10 files 20 Mbytes of size each)
 #### config/settings.ini - contains tool's configurtion
+
+##### Available options in config/settings.ini:
+1. **file_size_to_gzip** - when to archive a file (for both deltas and commands).
+2. **num_to_store** - how many archive files to store for the command (for both deltas and commands).
+3. **logging_console** and **logging_file** - what level of logging to use for console and when logging to a file (deault level is 'INFO').
+4. **debug_connection** - whether to log device output during connection and getting a command from CLI (default is 'False' meaning output is suppressed).
+
 #### config/testbed.yaml - contains pyATS testbed file (information to what devices connect and how)
 See for more information about pyATS testbed file:
 [Testbed creation](https://pubhub.devnetcloud.com/media/pyats/docs/topology/creation.html#testbed-file)
@@ -209,9 +216,6 @@ gathered_commands/<device_name*>/command/archive/<output_of_archive_show_command
 
 When to archive a file (for both deltas and commands) is determined by 'file_size_to_gzip' parameter in **config/settings.ini**
 How many archive files to store for the command (for both deltas and commands) is determined by 'num_to_store' parameter in **config/settings.ini**
-
-**logging_console** and **logging_file** options dictate what level of logging to use for console and when logging to a file (deault level is 'INFO').
-**debug_connection** options sets whether to log device output during connection and getting a command from CLI (default is 'False' meaning output is suppressed).
 
 #### pycrawler_lib/ - directory which contains script files
 #### pycrawler.py - the main script file
