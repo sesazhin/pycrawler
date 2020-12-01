@@ -107,9 +107,9 @@ def remove_old_gz_files(only_big_files: List, dir_path: str, num_to_store) -> No
 
 def write_commands_to_file(abs_filename: str, command_output: str, time_now_readable: str, additional_info='') -> None:
     # truncate timestamp before writing to file
-    match_time = re.match(r'\w+:\s+\d+-(\d+-\d+\s+\d+:\d+\d+:\d+).*', time_now_readable)
+    match_time = re.match(r'(\w+:\s+)\d+-(\d+)-(\d+)(\s+\d+:\d+\d+:\d+).*', time_now_readable)
     if match_time:
-        time_now_readable = match_time.group(1)
+        time_now_readable = f'{match_time.group(1)}{match_time.group(3)}.{match_time.group(2)}{match_time.group(4)}'
 
     try:
         with open(abs_filename, "a") as file_output:
