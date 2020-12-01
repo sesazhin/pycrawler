@@ -219,6 +219,10 @@ How many archive files to store for the command (for both deltas and commands) i
 ### Script will always try to get time from the device ('show time' in case of FTD):
 1. If it's able to get the time from device:
    It will use it and the following prefix would be added in the begining of line with time: **DT:**
+   
+   Due to the CSCvc04969 ("Need option to set local timezone on FTD" - applicable to FPR2100 and FPR1100) - \
+   the time taken from FTD device is in UTC.
+   
 2. If it's not able to get the time from device:
    It will use time from host where the tool is running and the following prefix would be added in the begining of line with time: **ST:**
 
