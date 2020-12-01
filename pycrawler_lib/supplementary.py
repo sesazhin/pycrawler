@@ -55,7 +55,7 @@ def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -
         file_handler.setFormatter(logFormatter)
         root_logger.addHandler(file_handler)
 
-        pyats_handler = TaskLogHandler('/home/admin/pyats/pycrawler')
+        pyats_handler = TaskLogHandler('/home/admin/pyats/pycrawler/pyats.log')
         root_logger.addHandler(pyats_handler)
 
     except PermissionError:
