@@ -107,7 +107,7 @@ def remove_old_gz_files(only_big_files: List, dir_path: str, num_to_store) -> No
 
 def write_commands_to_file(abs_filename: str, command_output: str, time_now_readable: str, additional_info='') -> None:
     # truncate timestamp before writing to file
-    match_time = re.match(r'\w+:\s +\d + -(\d+-\d+\s+\d+:\d+\d+:\d+). *', time_now_readable)
+    match_time = re.match(r'\w+:\s+\d+-(\d+-\d+\s+\d+:\d+\d+:\d+).*', time_now_readable)
     if match_time:
         time_now_readable = match_time.group(1)
 
@@ -427,5 +427,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
