@@ -4,7 +4,7 @@ import logging.handlers
 from os import path
 from os import mkdir
 from pathlib import Path
-
+from pyats.log import TaskLogHandler
 
 def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -> logging.getLogger():
     """
@@ -54,6 +54,9 @@ def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -
         file_handler.setLevel(logging_num_file)
         file_handler.setFormatter(logFormatter)
         root_logger.addHandler(file_handler)
+
+        pyats_handler = TaskLogHandler('/home/admin/pyats/pycrawler')
+        root_logger.addHandler(pyats_handler)
 
     except PermissionError:
         root_logger.exception(f'Unable to create log file: {LOGFILE}.\nLogs not saved!')
