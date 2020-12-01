@@ -210,6 +210,9 @@ gathered_commands/<device_name*>/command/archive/<output_of_archive_show_command
 When to archive a file (for both deltas and commands) is determined by 'file_size_to_gzip' parameter in **config/settings.ini**
 How many archive files to store for the command (for both deltas and commands) is determined by 'num_to_store' parameter in **config/settings.ini**
 
+**logging_console** and **logging_file** options dictate what level of logging to use for console and when logging to a file (deault level is 'INFO').
+**debug_connection** options sets whether to log device output during connection and getting a command from CLI (default is 'False' meaning output is suppressed).
+
 #### pycrawler_lib/ - directory which contains script files
 #### pycrawler.py - the main script file
 
