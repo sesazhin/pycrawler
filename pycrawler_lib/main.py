@@ -106,12 +106,16 @@ def remove_old_gz_files(only_big_files: List, dir_path: str, num_to_store) -> No
 
 
 def write_commands_to_file(abs_filename: str, command_output: str, time_now_readable: str, additional_info='') -> None:
+    # truncate timestamp before writing to file
+    match_time = re.match(r'\w+:\s +\d + -(\d+-\d+\s+\d+:\d+\d+:\d+). *', time_now_readable)
+    if match_time:
+        time_now_readable = match_time.group(1)
+
     try:
         with open(abs_filename, "a") as file_output:
             file_output.write(f'\n*****{time_now_readable}{additional_info}*****\n')
             log.debug(f'writing command output to file: {abs_filename}')
             file_output.write(command_output)
-
     except IOError as e:
         log.error(f'Unable to write output to file: {abs_filename}.'
                   f'Due to error: {e}')
