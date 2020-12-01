@@ -167,7 +167,7 @@ def get_time(device, device_os: str) -> str:
 
     if device_os == 'fxos':
         log.debug('running "show time"')
-        command_output = device.execute('show time', log_stdout=False)
+        command_output = device.execute('show time', log_stdout=debug_connection)
         ftd_time_now = get_time_ftd(command_output)  # get 'show time' output from FTD
         log.debug(f'Got time from device: {ftd_time_now}')
 
@@ -202,7 +202,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
         sup.create_non_existing_dir(device_path_commands)
 
         try:
-            device.connect(log_stdout=False)
+            device.connect(log_stdout=debug_connection)
         except errors.ConnectionError:
             log.error(f'Failed to establish connection to: {device.name}.'
                       f'Check connectivity and try again.')
@@ -215,7 +215,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
             # get failover state of this device
             if device_os == 'fxos':
                 log.debug('running "show failover | include This host"')
-                command_output = device.execute('show failover | include "This host"', log_stdout=False)
+                command_output = device.execute('show failover | include "This host"', log_stdout=debug_connection)
                 additional_info = get_failover_status(command_output)  # get failover status
                 log.debug(f'Got failover status: {additional_info}')
 
@@ -226,7 +226,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
                 abs_filename = join(device_path_commands, filename)
                 log.info(f'filename: {abs_filename}')
 
-                command_output = device.execute(command, log_stdout=False)
+                command_output = device.execute(command, log_stdout=debug_connection)
 
                 # fixing cosmetic bug with '>' on the last line of FTD's output
                 if device_os == 'fxos' and command_output[-1:] == '>':
@@ -278,7 +278,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
         sup.create_non_existing_dir(device_path_delta)
 
         try:
-            device.connect(log_stdout=False)
+            device.connect(log_stdout=debug_connection)
         except errors.ConnectionError:
             log.error(f'Failed to establish connection to: {device.name}.'
                       f'Check connectivity and try again.')
@@ -329,11 +329,11 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         # get failover state of this device
                         if device_os == 'fxos':
                             log.debug('running "show failover | include This host"')
-                            command_output = device.execute('show failover | include "This host"', log_stdout=False)
+                            command_output = device.execute('show failover | include "This host"', log_stdout=debug_connection)
                             additional_info = get_failover_status(command_output)  # get failover status
                             log.debug(f'Got failover status: {additional_info}')
 
-                        command_output = device.execute(command[0], log_stdout=False)
+                        command_output = device.execute(command[0], log_stdout=debug_connection)
 
                         log.info(f'Run command: "{command[0]}"')
 
@@ -368,7 +368,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
             # Block of run clear commands and update tmp file with new timestamp:
             for command in commands_to_gather[device_os]:
-                device.execute(command[1], log_stdout=False)
+                device.execute(command[1], log_stdout=debug_connection)
                 log.info(f'Run command: "{command[1]}"')
 
             try:
@@ -410,6 +410,10 @@ def main():
     global log
     log = sup.set_main_logging(logging_level_console, logging_level_file)
 
+    # turns on or off output from the connection to a device:
+    global debug_connection
+    debug_connection = False
+    
     if exists(testbed_filename):
         log.debug(f'testbed_filename = {testbed_filename}')
         testbed = Genie.init(testbed_filename)
