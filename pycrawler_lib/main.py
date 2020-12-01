@@ -141,7 +141,7 @@ def get_time_ftd(command_output):
         # device_time_now = re.match(r'Localtime - (.*)', time_command_line)
         # Due to the CSCvc04969 for FPR2100 and FPR1100 ("Need option to set local timezone on FTD") -
         # it's better to get UTC time from FTD now:
-        device_time_now = re.match(r'(UTC[\s-]+)(. *)', time_command_line)
+        device_time_now = re.match(r'(UTC\s+-\s+)(.*)', time_command_line)
         if device_time_now:
             device_time_now = device_time_now.group(2)
             break
