@@ -5,6 +5,7 @@ import gzip
 import logging
 import logging.handlers
 import pathlib
+import pytz
 import re
 import shutil
 import time
@@ -150,16 +151,24 @@ def get_time_ftd(command_output):
 
 
 def get_time(device, device_os: str) -> str:
-    time_now_readable = f"ST: {time.strftime('%d %b %Y %Z %H:%M:%S', time.localtime())}"
-    # log.info(f'time_now: {time_now_readable}')
+    # time_now_readable = f"ST: {time.strftime('%d %b %Y %Z %H:%M:%S', time.localtime())}"
+    time_now_readable = f"ST: {datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)}"
+    log.info(f'!!!! time_now: {time_now_readable}')
 
     if device_os == 'fxos':
         log.info('>> running "show time"')
         command_output = device.execute('show time', log_stdout=False)
-        ftd_time_now = get_time_ftd(command_output)  # get failover status
+        ftd_time_now = get_time_ftd(command_output)  # get 'show time' output from FTD
         log.info(f'>> Got time from device: {ftd_time_now}')
 
         if ftd_time_now:
+            try:
+                # convert to UTC time
+                ftd_time_now = dateparser.parse(ftd_time_now, date_formats=['%a %b %d %H:%M:%S %Z %Y'])
+                ftd_time_now = pytz.utc.localize(ftd_time_now)
+            except ValueError:
+                print('Time taken from device already contains TZ offset from UTC, no need to convert to UTC offset')
+
             time_now_readable = f'DT: {ftd_time_now}'
             log.info(f'>> Got time from ftd: {time_now_readable}')
 
@@ -237,7 +246,8 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
 
 def time_gmt_format(str_datetime):
     # from string like "Mon Nov 30 13:44:43 EST 2020" to 'Mon Nov 30 13:46:43 2020'
-    date_time_obj = dateparser.parse(str_datetime, date_formats=['%a %b %d %H:%M:%S %Z %Y'])
+    # date_time_obj = dateparser.parse(str_datetime, date_formats=['%a %b %d %H:%M:%S %Z %Y'])
+    date_time_obj = dateparser.parse(str_datetime)
     return date_time_obj
 
 
