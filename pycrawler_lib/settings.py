@@ -9,6 +9,7 @@ def settings(ini_path):
     s["num_to_store"] = 10
     s["logging_console"] = "ERROR"
     s["logging_file"] = "INFO"
+    s["debug_connection"] = False
 
     if os.path.exists(ini_path):
         try:
@@ -48,6 +49,15 @@ def settings(ini_path):
                                               f"must be numbers. Setting default values: "
                                               f"file_size_to_gzip: {s['file_size_to_gzip']} "
                                               f"num_to_store: {s['num_to_store']}.")
+
+                        elif opt == "debug_connection":
+                            get_opt = config.get("main", opt)
+                            if get_opt in ['True', 'False']:
+                                s[opt] = bool(get_opt)
+                            else:
+                                logging.error(f"Option 'debug_connection' is not either 'True' or 'False'."
+                                              f"Setting default value: "
+                                              f"debug_connection: {s['debug_connection']}.")
 
                         else:
                             s[opt] = config.get("main", opt)

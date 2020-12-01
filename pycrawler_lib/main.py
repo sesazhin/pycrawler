@@ -412,7 +412,7 @@ def main():
 
     # turns on or off output from the connection to a device:
     global debug_connection
-    debug_connection = False
+    debug_connection = s['debug_connection']
     
     if exists(testbed_filename):
         log.debug(f'testbed_filename = {testbed_filename}')
