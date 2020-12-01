@@ -52,8 +52,10 @@ def settings(ini_path):
 
                         elif opt == "debug_connection":
                             get_opt = config.get("main", opt)
-                            if get_opt in ['True', 'False']:
-                                s[opt] = bool(get_opt)
+                            if get_opt == 'False':
+                                s[opt] = False
+                            elif get_opt == 'True':
+                                s[opt] = True
                             else:
                                 logging.error(f"Option 'debug_connection' is not either 'True' or 'False'."
                                               f"Setting default value: "
