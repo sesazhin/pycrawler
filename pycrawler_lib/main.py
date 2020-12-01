@@ -105,11 +105,18 @@ def remove_old_gz_files(only_big_files: List, dir_path: str, num_to_store) -> No
             remove_file(oldest_file)
 
 
+def get_time_trunc(time_readable: str) -> str:
+    match_time = re.match(r'(\w+:\s+)\d+-(\d+)-(\d+)(\s+\d+:\d+\d+:\d+).*', time_readable)
+    if match_time:
+        time_readable = f'{match_time.group(1)}{match_time.group(3)}.{match_time.group(2)}{match_time.group(4)}'
+
+    return time_readable
+
+
 def write_commands_to_file(abs_filename: str, command_output: str, time_now_readable: str, additional_info='') -> None:
     # truncate timestamp before writing to file
-    match_time = re.match(r'(\w+:\s+)\d+-(\d+)-(\d+)(\s+\d+:\d+\d+:\d+).*', time_now_readable)
-    if match_time:
-        time_now_readable = f'{match_time.group(1)}{match_time.group(3)}.{match_time.group(2)}{match_time.group(4)}'
+
+    time_now_readable = get_time_trunc(time_now_readable)
 
     try:
         with open(abs_filename, "a") as file_output:
@@ -338,7 +345,8 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         seconds_interval = round((current_timestamp - clear_timestamp).total_seconds())
 
                         delta_time_string = f'Delta output for the interval: ' \
-                                            f'{clear_timestamp_full} - {time_now_readable_full}.' \
+                                            f'{get_time_trunc(clear_timestamp_full)} -' \
+                                            f' {get_time_trunc(time_now_readable_full)}.' \
                                             f' Interval: {seconds_interval} sec'
                         write_commands_to_file(abs_filename, command_output, delta_time_string, additional_info)
 
