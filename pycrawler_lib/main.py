@@ -162,15 +162,14 @@ def get_time_ftd(command_output):
 
 
 def get_time(device, device_os: str) -> str:
-    # time_now_readable = f"ST: {time.strftime('%d %b %Y %Z %H:%M:%S', time.localtime())}"
     time_now_readable = f"ST: {datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)}"
-    log.info(f'!!!! time_now: {time_now_readable}')
+    log.debug(f'time_now: {time_now_readable}')
 
     if device_os == 'fxos':
-        log.info('>> running "show time"')
+        log.debug('running "show time"')
         command_output = device.execute('show time', log_stdout=False)
         ftd_time_now = get_time_ftd(command_output)  # get 'show time' output from FTD
-        log.info(f'>> Got time from device: {ftd_time_now}')
+        log.debug(f'Got time from device: {ftd_time_now}')
 
         if ftd_time_now:
             try:
@@ -181,7 +180,7 @@ def get_time(device, device_os: str) -> str:
                 print('Time taken from device already contains TZ offset from UTC, no need to convert to UTC offset')
 
             time_now_readable = f'DT: {ftd_time_now}'
-            log.info(f'>> Got time from ftd: {time_now_readable}')
+            log.debug(f'Got time from ftd: {time_now_readable}')
 
     return time_now_readable
 
@@ -292,7 +291,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
         skip_show_commands = False
 
-        log.info(f'>>> time_now: {current_timestamp}')
+        log.debug(f'time_now: {current_timestamp}')
 
         if commands_to_gather.get(device_os):
             flag_delta_filename = join(device_path_delta, '.clear_flag')
