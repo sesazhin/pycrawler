@@ -204,7 +204,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
         try:
             device.connect(log_stdout=debug_connection)
         except errors.ConnectionError:
-            log.error(f'Failed to establish connection to: {device.name}.'
+            log.error(f'Failed to establish connection to: {device_name}.'
                       f'Check connectivity and try again.')
             continue
 
@@ -214,10 +214,10 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
             additional_info = ''
             # get failover state of this device
             if device_os == 'fxos':
-                log.debug('running "show failover | include This host"')
+                log.debug(f'{device_name}: running "show failover | include This host"')
                 command_output = device.execute('show failover | include "This host"', log_stdout=debug_connection)
                 additional_info = get_failover_status(command_output)  # get failover status
-                log.debug(f'Got failover status: {additional_info}')
+                log.debug(f'{device_name}: got failover status: {additional_info}')
 
             for command in commands_to_gather[device_os]:
                 filename_command = command.replace(' ', '_')
@@ -226,6 +226,7 @@ def collect_device_commands(testbed, commands_to_gather: Dict,
                 abs_filename = join(device_path_commands, filename)
                 log.info(f'filename: {abs_filename}')
 
+                log.info(f'{device_name}: run command: "{command}"')
                 command_output = device.execute(command, log_stdout=debug_connection)
 
                 # fixing cosmetic bug with '>' on the last line of FTD's output
@@ -267,7 +268,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
     sup.create_non_existing_dir(abs_dir_path)
 
-    log.debug('Starting to collect output of the commands')
+    log.debug('Starting to collect output of the delta commands')
 
     for device_name, device in testbed.devices.items():
         # get operating system of a device from pyats_testbed.yaml
@@ -280,7 +281,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
         try:
             device.connect(log_stdout=debug_connection)
         except errors.ConnectionError:
-            log.error(f'Failed to establish connection to: {device.name}.'
+            log.error(f'Failed to establish connection to: {device_name}.'
                       f'Check connectivity and try again.')
             continue
 
@@ -298,7 +299,7 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
             if exists(flag_delta_filename):
                 # counters have been cleared already
-                log.info(f'flag_delta_filename {flag_delta_filename} exists')
+                log.info(f'flag_delta_filename {flag_delta_filename} for device "{device_name}" exists')
 
                 # check that we are able to read from delta file. Otherwise there is no point to collect show commands
                 try:
@@ -328,14 +329,13 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
                         additional_info = ''
                         # get failover state of this device
                         if device_os == 'fxos':
-                            log.debug('running "show failover | include This host"')
+                            log.debug(f'{device_name}: running "show failover | include This host"')
                             command_output = device.execute('show failover | include "This host"', log_stdout=debug_connection)
                             additional_info = get_failover_status(command_output)  # get failover status
-                            log.debug(f'Got failover status: {additional_info}')
+                            log.debug(f'{device_name}: got failover status: {additional_info}')
 
+                        log.info(f'{device_name}: run command: "{command[0]}"')
                         command_output = device.execute(command[0], log_stdout=debug_connection)
-
-                        log.info(f'Run command: "{command[0]}"')
 
                         # fixing cosmetic bug with '>' on the last line of FTD's output
                         if device_os == 'fxos' and command_output[-1:] == '>':
@@ -364,12 +364,12 @@ def collect_delta_device_commands(testbed, commands_to_gather: Dict,
 
             else:
                 # counters haven't been cleared already
-                log.info(f'flag_delta_filename {flag_delta_filename} does not exist')
+                log.info(f'flag_delta_filename {flag_delta_filename} for device "{device_name}" does not exist')
 
             # Block of run clear commands and update tmp file with new timestamp:
             for command in commands_to_gather[device_os]:
+                log.info(f'{device_name}: run command: "{command[1]}"')
                 device.execute(command[1], log_stdout=debug_connection)
-                log.info(f'Run command: "{command[1]}"')
 
             try:
                 with open(flag_delta_filename, mode='w') as fp:
