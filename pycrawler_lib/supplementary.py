@@ -26,7 +26,7 @@ def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -
 
     global root_logger
     root_logger = logging.getLogger('main_logger')
-    root_logger.propagate = False
+    root_logger.propagate = True
     root_logger.setLevel(logging.DEBUG)
     logFormatter = logging.Formatter("%(asctime)s - %(filename)s - "
                                      "line %(lineno)s - %(funcName)s - %(levelname)s: %(message)s")
