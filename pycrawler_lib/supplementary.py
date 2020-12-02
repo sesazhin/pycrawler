@@ -26,7 +26,7 @@ def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -
 
     global root_logger
     root_logger = logging.getLogger('main_logger')
-    root_logger.propagate = True
+    root_logger.propagate = False
     root_logger.setLevel(logging.DEBUG)
     logFormatter = logging.Formatter("%(asctime)s - %(filename)s - "
                                      "line %(lineno)s - %(funcName)s - %(levelname)s: %(message)s")
@@ -55,8 +55,11 @@ def set_main_logging(logging_level_console='ERROR', logging_level_file='INFO') -
         file_handler.setFormatter(logFormatter)
         root_logger.addHandler(file_handler)
 
-        pyats_handler = TaskLogHandler('/home/admin/pyats/pycrawler/pyats.log')
+        '''
+        PYATS_LOGFILE = path.join(abs_log_path, 'pyats.log')
+        pyats_handler = TaskLogHandler(PYATS_LOGFILE)
         root_logger.addHandler(pyats_handler)
+        '''
 
     except PermissionError:
         root_logger.exception(f'Unable to create log file: {LOGFILE}.\nLogs not saved!')
